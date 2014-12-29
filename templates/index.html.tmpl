@@ -1,0 +1,121 @@
+<html>
+<head>
+  <link type="text/css" href="./themes/base/ui.all.css" rel="stylesheet"/>
+  <script type="text/javascript" src="./js/jquery-1.3.2.min.js"></script>
+  <script type="text/javascript" src="./js/ui/ui.core.js"></script>
+  <script type="text/javascript" src="./js/ui/ui.datepicker.js"></script>
+ 
+  <script type="text/javascript">
+  $(function() {
+      $("#s_datepicker").datepicker();
+      $("#e_datepicker").datepicker();
+  });
+  </script>
+
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<title>Google Maps JavaScript API v3 Example: Marker Simple</title>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript">
+  var g_datas = ${datas};
+//<!--<![CDATA[
+  var g_info_windows = [];
+  var g_markers = [];
+
+  var map;
+  var geocoder;
+
+  function initialize() {
+    geocoder = new google.maps.Geocoder();
+    //var myLatlng = new google.maps.LatLng(-25.363882,131.044922);
+    var myOptions = {
+      zoom: 6,
+      //center: myLatlng,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    }
+    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+    
+    //var marker = new google.maps.Marker({
+    //    position: myLatlng, 
+    //    map: map,
+    //    title:"Hello World!"
+    //});   
+
+    codeAddress();
+  }
+
+
+  function plot_geocode(location, message, is_center) {
+    geocoder.geocode({ 'address': location}, function(results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+        var marker = new google.maps.Marker({
+            map: map, 
+            position: results[0].geometry.location
+        });
+        var infowindow = new google.maps.InfoWindow({
+          content: message
+        });
+        g_info_windows.push(infowindow);
+        g_markers.push(marker);
+        // 初めから開いておく
+        infowindow.open(map, marker);
+        google.maps.event.addListener(marker, 'click', function() {
+          // イベント登録
+          infowindow.open(map, marker);
+        });
+
+        // 値をセンターにする
+        if(is_center) {
+          map.setCenter(results[0].geometry.location);
+        }
+	$('#result>tbody').append('<tr><td>' + location + '</td><td>o</td></tr>');
+      } else {
+        console.error("Geocode was not successful for the following reason: [" + location + "] " + status);
+	$('#result>tbody').append('<tr><td>' + location + '</td><td>x</td></tr>');
+      }
+    });
+  }
+
+  function codeAddress() {
+    if (geocoder) {
+      var is_center = true;
+      for (var key in g_datas) {
+        plot_geocode(key, g_datas[key], is_center);
+        is_center = false; // 一番最初のものをセンターにする
+      }
+    }
+  }
+
+  function show_all() {
+    for (var i = 0; i < g_info_windows.length; i++) {
+      g_info_windows[i].open(map, g_markers[i]);
+    }
+  }
+
+  function hidden_all() {
+    for (var i = 0; i < g_info_windows.length; i++) {
+      g_info_windows[i].close();
+    }
+  }
+//]]>-->
+
+</script>
+</head>
+<body style="margin:0px; padding:0px;" onload="initialize()">
+  <div id="map_canvas" style="position: absolute; width: 100%; height: 100%;"></div>
+  <div id="show_or_hidden" style="position: absolute; top: 5; left: 70px; width: 100%;">
+    <form method="get" action="./index.cgi">
+    <div style="position: absolute; top: 0;">アカウント名: <input type="text" name="name" value="${name}"/><input type="submit"/></div>
+    </form>
+    <div style="position: relative; top: 0; left: 300px">開始: <input id="s_datepicker" text="text" /> 終了: <input id="e_datepicker" text="text" /></div>
+  </div>
+  <div style="position: absolute; top: 30px; right: 10px">メッセージ全てを<input id="show" type="radio" name="show_hidden" value="show" onClick="show_all();" checked="true" /><label for="show">表示</label><input id="hidden" type="radio" name="show_hidden" value="hidden" onClick="hidden_all();" /><label for="hidden">隠す</label></div>
+  <div id="r1" style="position: absolute; top: 30px; right: 10px">
+  <table id="result" border="1" style="position: absolute; top: 50px; right: 10px; white-space: nowrap">
+   <thead><th>住所</th><th>結果</th></thead>
+   <tbody></tbody>
+  </table>
+  </div>
+</body>
+</html>
+
